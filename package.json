@@ -1,0 +1,37 @@
+{
+  "name": "vitis-cli",
+  "version": "0.0.1",
+  "keywords": [
+    "low-code"
+  ],
+  "description": "低代码组件脚手架",
+  "main": "index.js",
+  "engines": {
+    "node": ">=14"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/react-low-code/vitis-cli.git"
+  },
+  "bin": {
+    "vitis-cli": "./index.js"
+  },
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "commander": "^9.3.0",
+    "cross-spawn": "^7.0.3",
+    "envinfo": "^7.8.1",
+    "hyperquest": "^2.1.3",
+    "prompts": "^2.4.2",
+    "semver": "^7.3.5",
+    "tar-pack": "^3.4.1",
+    "tmp": "^0.2.1",
+    "validate-npm-package-name": "^3.0.0",
+    "fs-extra": "^10.1.0"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
+  },
+  "author": "heyu",
+  "license": "ISC"
+}
