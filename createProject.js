@@ -5,7 +5,9 @@ const execSync = require('child_process').execSync;
 const path = require('path');
 const semver = require('semver');
 const spawn = require('cross-spawn');
+const download = require('download-git-repo')
 const fs = require('fs-extra')
+
 const utils = require('./utils')
 const startPrompts = require('./prompts')
 const generatorPackageJson = require('./generator/packageJson')
@@ -23,13 +25,32 @@ async function verifyDir(destination) {
     }
 }
 
-async function copyDir(userAnswer) {
-    const source = path.resolve(__dirname, 'template')
+
+const repo = 'direct:https://github.com/react-low-code/vitis-component-template.git#master'
+const tmpDir = path.resolve(process.cwd(), 'tmp')
+
+async function downloadTemplateToTarget(userAnswer) {
     const destination = path.resolve(process.cwd(), userAnswer.projectName)
     await verifyDir(destination)
-    fs.copySync(source, destination)
 
-    return destination
+    return new Promise((resolve, reject) => {
+        console.log(`${chalk.green('开始下载模板...')}`);
+        download(repo, tmpDir,{
+            clone: true
+        }, (err) => {
+            if (err) {
+                reject('项目模板下载失败 ->' + err)
+            } else {
+                const source = path.resolve(tmpDir, 'template')
+                fs.copySync(source, destination, {
+                    recursive: true
+                })
+                fs.removeSync(tmpDir)
+                resolve(destination)
+            }
+        })
+    })
+    
 }
 
 function init() {
@@ -39,9 +60,8 @@ function init() {
         (async () => {
             try {
                 const userAnswer = await startPrompts()
-                const destination = await copyDir(userAnswer)
+                const destination = await downloadTemplateToTarget(userAnswer)
                 generatorPackageJson(destination, userAnswer)
-                fs.renameSync(path.resolve(destination,'gitignore'), path.resolve(destination,'.gitignore'))
                 generatorMarkdown(destination, userAnswer)
                 generatorUmirc(destination, userAnswer)
             } catch (error) {
