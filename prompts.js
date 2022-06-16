@@ -8,7 +8,7 @@ const questions = [
         message: '请输入组件英文名，例如: WarningText'
     },
     {
-        type: 'confirm',
+        type: (prev) => !!prev.trim() ? 'confirm' : null,
         name: 'confirmDir',
         message: (prev) => `项目将创建在 vitis-lowcode-${prev.toLocaleLowerCase().trim()} 目录，你确定吗？`,
         initial: true
