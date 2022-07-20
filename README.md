@@ -8,10 +8,20 @@
 npm i vitis-cli -g
 ```
 
-## 使用
+## 新建项目
 
 ```dotnetcli
 vitis-cli create
+```
+
+按照命令行提示输入
+
+## 新增组件
+
+在项目中执行如下命令
+
+```dotnetcli
+vitis-cli add
 ```
 
 按照命令行提示输入

@@ -9,7 +9,7 @@ const download = require('download-git-repo')
 const fs = require('fs-extra')
 
 const utils = require('./utils')
-const startPrompts = require('./prompts')
+const prompts = require('./prompts')
 const generatorPackageJson = require('./generator/packageJson')
 const generatorMarkdown = require('./generator/markdown')
 const generatorUmirc = require('./generator/umirc')
@@ -29,8 +29,8 @@ async function verifyDir(destination) {
 const repo = 'direct:https://github.com/react-low-code/vitis-component-template.git#master'
 const tmpDir = path.resolve(process.cwd(), 'tmp')
 
-async function downloadTemplateToTarget(userAnswer) {
-    const destination = path.resolve(process.cwd(), userAnswer.projectName)
+async function downloadTemplateToTarget(des) {
+    const destination = path.resolve(process.cwd(), des)
     await verifyDir(destination)
 
     return new Promise((resolve, reject) => {
@@ -50,20 +50,56 @@ async function downloadTemplateToTarget(userAnswer) {
             }
         })
     })
-    
+}
+
+function generatorComponent(componentDestination, userAnswer) {
+    generatorPackageJson(componentDestination, userAnswer)
+    generatorMarkdown(componentDestination, userAnswer)
+    generatorUmirc(componentDestination, userAnswer)
 }
 
 function init() {
     const program = new commander.Command();
-    program.command('create')
+    program
+    .command('create')
     .action(() => {
         (async () => {
             try {
-                const userAnswer = await startPrompts()
-                const destination = await downloadTemplateToTarget(userAnswer)
-                generatorPackageJson(destination, userAnswer)
-                generatorMarkdown(destination, userAnswer)
-                generatorUmirc(destination, userAnswer)
+                const userAnswer = await prompts.create()
+                const projectDestination = await downloadTemplateToTarget('vitis-component-packages')
+                const componentDestination = path.resolve(projectDestination ,'packages' ,userAnswer.componentName)
+
+                fs.renameSync(path.resolve(projectDestination ,'packages' ,'example'), componentDestination)
+                generatorComponent(componentDestination, userAnswer)
+            } catch (error) {
+                if (error) {
+                    console.error(
+                        `${chalk.red(error)}`
+                    );
+                }
+                process.exit(1);
+            }
+        })()
+    })
+    .allowUnknownOption()
+
+    program
+    .command('add')
+    .action(() => {
+        (async () => {
+            try {
+                const userAnswer = await prompts.add()
+                const componentTargetDestination = path.resolve(process.cwd(), 'packages', userAnswer.componentName)
+                await verifyDir(componentTargetDestination)
+                
+                const projectDestination = await downloadTemplateToTarget('___temp__')
+                const componentOriginDestination = path.resolve(projectDestination ,'packages' ,userAnswer.componentName)
+
+                fs.renameSync(path.resolve(projectDestination ,'packages' ,'example'), componentOriginDestination)
+                
+                fs.moveSync(componentOriginDestination, componentTargetDestination)
+                fs.removeSync(projectDestination)
+                generatorComponent(componentTargetDestination, userAnswer)
             } catch (error) {
                 if (error) {
                     console.error(
