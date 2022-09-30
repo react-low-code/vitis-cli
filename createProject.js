@@ -1,10 +1,7 @@
 'use strict';
 const commander = require('commander');
 const chalk = require('chalk');
-const execSync = require('child_process').execSync;
 const path = require('path');
-const semver = require('semver');
-const spawn = require('cross-spawn');
 const download = require('download-git-repo')
 const fs = require('fs-extra')
 
@@ -13,6 +10,8 @@ const prompts = require('./prompts')
 const generatorPackageJson = require('./generator/packageJson')
 const generatorMarkdown = require('./generator/markdown')
 const generatorUmirc = require('./generator/umirc')
+const setter = require('./generator/setter')
+const entry = require('./generator/entry')
 
 async function verifyDir(destination) {
     const isExitDir = await utils.isExitDir(destination)
@@ -111,6 +110,39 @@ function init() {
         })()
     })
     .allowUnknownOption()
+
+    program
+    .command('setter')
+    .action(() => {
+        (async () => {
+            try {
+                const userAnswer = await prompts.setter()
+                const settersDir = path.resolve(userAnswer.component, 'src','setters')
+                const settersExportFile = path.resolve(settersDir, 'index.ts')
+                const thisSetterDir = path.resolve(settersDir,userAnswer.setterName)
+
+                fs.ensureDirSync(settersDir)
+                if (await utils.isExitDir(thisSetterDir)) {
+                    throw `你选择的组件已存在一个名为 ${userAnswer.setterName} 的设置器`
+                }
+                fs.ensureFileSync(settersExportFile)
+                
+                const setterComponentFile = path.resolve(thisSetterDir, 'index.tsx')
+                fs.ensureFileSync(setterComponentFile)
+                setter.generatorSetter(setterComponentFile, userAnswer)
+                setter.exportSetter(settersExportFile, userAnswer)
+                entry.exportSetter(userAnswer.component)
+
+            } catch (error) {
+                if (error) {
+                    console.error(
+                        `${chalk.red(error)}`
+                    );
+                }
+                process.exit(1);
+            }
+        })()
+    })
 
     program.parse();
 }

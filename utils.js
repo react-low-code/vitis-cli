@@ -31,7 +31,16 @@ function isFileExit(pathStr) {
     })
 }
 
+async function getSubDirs(pathStr) {
+    if (!await isEmptyDir(pathStr)) {
+        const items = await fs.readdir(pathStr)
+
+        return items
+    }
+}
+
 module.exports = {
     isExitDir,
-    isEmptyDir
+    isEmptyDir,
+    getSubDirs
 }
